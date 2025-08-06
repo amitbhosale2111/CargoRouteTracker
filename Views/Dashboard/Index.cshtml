@@ -1,0 +1,260 @@
+@model CargoRouteTracker.Controllers.DashboardViewModel
+@{
+    ViewData["Title"] = "Cargo Route Tracker - Dashboard";
+}
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-0 text-gray-800">Fleet Dashboard</h1>
+            <p class="mb-0 text-muted">Real-time fleet tracking and delivery management</p>
+        </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Vehicles</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.TotalVehicles</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-truck fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Active Deliveries</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.ActiveDeliveries</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-route fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Pending Deliveries</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.PendingDeliveries</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clock fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                Active Alerts</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.ActiveAlerts</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="row">
+        <!-- Live Map -->
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Live Fleet Tracker</h6>
+                    <div class="dropdown no-arrow">
+                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+                           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                             aria-labelledby="dropdownMenuLink">
+                            <div class="dropdown-header">Map Options:</div>
+                            <a class="dropdown-item" href="#" onclick="refreshMap()">Refresh Map</a>
+                            <a class="dropdown-item" href="#" onclick="centerMap()">Center Map</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="map" style="height: 400px; width: 100%; background-color: #f8f9fa; border: 1px solid #dee2e6; display: flex; align-items: center; justify-content: center;">
+                        <div class="text-center">
+                            <i class="fas fa-map fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Map will be displayed here with Google Maps integration</p>
+                            <small class="text-muted">Note: Google Maps API key required for full functionality</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Real-time Alerts -->
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Real-time Alerts</h6>
+                </div>
+                <div class="card-body">
+                    <div id="alertsContainer">
+                        @if (Model.RecentAlerts.Any())
+                        {
+                            foreach (var alert in Model.RecentAlerts)
+                            {
+                                <div class="alert alert-@(alert.Severity == AlertSeverity.Critical ? "danger" : alert.Severity == AlertSeverity.High ? "warning" : "info") alert-dismissible fade show" role="alert">
+                                    <strong>@alert.Title</strong><br>
+                                    @alert.Message
+                                    <small class="d-block text-muted">@alert.CreatedAt.ToString("HH:mm") - @alert.Vehicle?.VehicleNumber</small>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <p class="text-muted">No active alerts</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Deliveries -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Deliveries</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="deliveriesTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Tracking #</th>
+                                    <th>Customer</th>
+                                    <th>Vehicle</th>
+                                    <th>Status</th>
+                                    <th>Scheduled</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var delivery in Model.RecentDeliveries)
+                                {
+                                    <tr>
+                                        <td>
+                                            <a href="@Url.Action("Details", "Deliveries", new { id = delivery.Id })" class="text-primary">
+                                                @delivery.TrackingNumber
+                                            </a>
+                                        </td>
+                                        <td>@delivery.Customer?.Name</td>
+                                        <td>@delivery.Vehicle?.VehicleNumber</td>
+                                        <td>
+                                            <span class="badge bg-@(delivery.Status == DeliveryStatus.Delivered ? "success" : 
+                                                               delivery.Status == DeliveryStatus.InTransit ? "primary" : 
+                                                               delivery.Status == DeliveryStatus.OutForDelivery ? "warning" : "secondary")">
+                                                @delivery.Status
+                                            </span>
+                                        </td>
+                                        <td>@delivery.ScheduledDeliveryTime.ToString("MM/dd HH:mm")</td>
+                                        <td>
+                                            <a href="@Url.Action("Details", "Deliveries", new { id = delivery.Id })" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/lib/microsoft/signalr/dist/browser/signalr.min.js"></script>
+    <script>
+        let connection;
+
+        // Initialize SignalR connection
+        function initSignalR() {
+            connection = new signalR.HubConnectionBuilder()
+                .withUrl("/trackingHub")
+                .build();
+
+            connection.on("VehicleLocationUpdated", (vehicleId, latitude, longitude, timestamp) => {
+                console.log(`Vehicle ${vehicleId} location updated: ${latitude}, ${longitude}`);
+            });
+
+            connection.on("DeliveryStatusUpdated", (deliveryId, status, timestamp) => {
+                console.log(`Delivery ${deliveryId} status updated: ${status}`);
+            });
+
+            connection.on("NewAlert", (alertId, title, message, type, severity, timestamp) => {
+                addNewAlert(title, message, severity);
+            });
+
+            connection.start().catch(err => console.error(err));
+        }
+
+        // Add new alert to the alerts container
+        function addNewAlert(title, message, severity) {
+            const alertClass = severity === 'Critical' ? 'danger' : severity === 'High' ? 'warning' : 'info';
+            const alertHtml = `
+                <div class="alert alert-${alertClass} alert-dismissible fade show" role="alert">
+                    <strong>${title}</strong><br>
+                    ${message}
+                    <small class="d-block text-muted">${new Date().toLocaleTimeString()}</small>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+            
+            const container = document.getElementById('alertsContainer');
+            container.insertAdjacentHTML('afterbegin', alertHtml);
+        }
+
+        // Refresh map (placeholder)
+        function refreshMap() {
+            console.log('Refreshing map...');
+        }
+
+        // Center map (placeholder)
+        function centerMap() {
+            console.log('Centering map...');
+        }
+
+        // Initialize everything when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initSignalR();
+        });
+    </script>
+} 

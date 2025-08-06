@@ -1,0 +1,412 @@
+@model CargoRouteTracker.Controllers.FuelCostViewModel
+@{
+    ViewData["Title"] = "Fuel & Cost Management";
+}
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-0 text-gray-800">Fuel & Cost Management</h1>
+            <p class="mb-0 text-muted">Monitor fuel consumption, energy efficiency, and cost savings analytics</p>
+        </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Fuel Cost (30 days)</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">$@Model.TotalFuelCost.ToString("N2")</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-gas-pump fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Cost Savings</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">$@Model.CostSavings.ToString("N2")</div>
+                            <div class="text-xs text-success">Up to 8% reduction</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Fuel Consumption (30 days)</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.TotalFuelConsumption.ToString("N1") L</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-tachometer-alt fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Avg Fuel Efficiency</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.AverageFuelEfficiency.ToString("N1") km/L</div>
+                            <div class="text-xs text-info">Energy optimized</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-leaf fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <!-- Fuel Consumption Chart -->
+        <div class="col-xl-8 col-lg-7">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Fuel Consumption Trends (Last 30 Days)</h6>
+                    <div class="dropdown no-arrow">
+                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+                           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                             aria-labelledby="dropdownMenuLink">
+                            <div class="dropdown-header">Chart Options:</div>
+                            <a class="dropdown-item" href="#" onclick="updateFuelChart('amount')">Fuel Amount</a>
+                            <a class="dropdown-item" href="#" onclick="updateFuelChart('cost')">Fuel Cost</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <canvas id="fuelChart" width="100%" height="40"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Energy Efficiency Gauge -->
+        <div class="col-xl-4 col-lg-5">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Energy Management Score</h6>
+                </div>
+                <div class="card-body">
+                    <div class="text-center">
+                        <div id="energyGauge" style="width: 200px; height: 200px; margin: 0 auto;"></div>
+                        <div class="mt-3">
+                            <h4 class="text-success">85%</h4>
+                            <p class="text-muted">Up to 12% fuel cost reduction</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vehicle Fuel Status -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Vehicle Fuel Status</h6>
+                    <a href="@Url.Action("CreateFuelRecord", "FuelCost")" class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus"></i> Add Fuel Record
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        @foreach (var vehicle in Model.Vehicles)
+                        {
+                            <div class="col-lg-4 col-md-6 mb-3">
+                                <div class="card border-left-@(vehicle.CurrentFuelLevel > 50 ? "success" : vehicle.CurrentFuelLevel > 25 ? "warning" : "danger") h-100">
+                                    <div class="card-body">
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col mr-2">
+                                                <div class="text-xs font-weight-bold text-uppercase mb-1">
+                                                    @vehicle.VehicleNumber
+                                                </div>
+                                                <div class="h6 mb-0 font-weight-bold text-gray-800">@vehicle.DriverName</div>
+                                                <div class="text-xs text-muted">
+                                                    Fuel Level: @(vehicle.CurrentFuelLevel?.ToString("N1") ?? "N/A")%
+                                                </div>
+                                                <div class="text-xs text-muted">
+                                                    Efficiency: @(vehicle.AverageFuelEfficiency?.ToString("N1") ?? "N/A") km/L
+                                                </div>
+                                                <div class="text-xs text-muted">
+                                                    Monthly Cost: $@(vehicle.TotalFuelCost?.ToString("N2") ?? "0.00")
+                                                </div>
+                                            </div>
+                                            <div class="col-auto">
+                                                <div class="progress-circle" data-percentage="@(vehicle.CurrentFuelLevel ?? 0)">
+                                                    <i class="fas fa-truck fa-2x text-gray-300"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <!-- Recent Fuel Records -->
+        <div class="col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Fuel Records</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Vehicle</th>
+                                    <th>Amount</th>
+                                    <th>Cost</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var record in Model.FuelRecords)
+                                {
+                                    <tr>
+                                        <td>@record.Vehicle?.VehicleNumber</td>
+                                        <td>@record.FuelAmount.ToString("N1") L</td>
+                                        <td>$@record.Cost.ToString("N2")</td>
+                                        <td>@record.RefuelDate.ToString("MM/dd")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cost Analytics -->
+        <div class="col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Cost Savings Analytics</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Vehicle</th>
+                                    <th>Savings %</th>
+                                    <th>Efficiency</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var analytics in Model.CostAnalytics)
+                                {
+                                    <tr>
+                                        <td>@analytics.Vehicle?.VehicleNumber</td>
+                                        <td>
+                                            <span class="badge bg-success">@analytics.CostSavingsPercentage.ToString("N1")%</span>
+                                        </td>
+                                        <td>@analytics.FuelEfficiency.ToString("N1") km/L</td>
+                                        <td>@analytics.Date.ToString("MM/dd")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Fuel Consumption Chart
+        let fuelChart;
+        
+        async function loadFuelChartData() {
+            try {
+                const response = await fetch('/FuelCost/GetFuelChartData');
+                const data = await response.json();
+                
+                const labels = data.map(item => new Date(item.date).toLocaleDateString());
+                const fuelAmounts = data.map(item => item.fuelAmount);
+                const costs = data.map(item => item.cost);
+                
+                const ctx = document.getElementById('fuelChart').getContext('2d');
+                
+                if (fuelChart) {
+                    fuelChart.destroy();
+                }
+                
+                fuelChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Fuel Amount (L)',
+                            data: fuelAmounts,
+                            borderColor: 'rgb(75, 192, 192)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            tension: 0.1
+                        }, {
+                            label: 'Cost ($)',
+                            data: costs,
+                            borderColor: 'rgb(255, 99, 132)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            tension: 0.1,
+                            yAxisID: 'y1'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                        scales: {
+                            y: {
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                title: {
+                                    display: true,
+                                    text: 'Fuel Amount (L)'
+                                }
+                            },
+                            y1: {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                title: {
+                                    display: true,
+                                    text: 'Cost ($)'
+                                },
+                                grid: {
+                                    drawOnChartArea: false,
+                                },
+                            },
+                        },
+                    },
+                });
+            } catch (error) {
+                console.error('Error loading fuel chart data:', error);
+            }
+        }
+        
+        function updateFuelChart(type) {
+            // This would update the chart based on the selected type
+            console.log('Updating fuel chart to show:', type);
+        }
+        
+        // Energy Efficiency Gauge
+        function createEnergyGauge() {
+            const gauge = document.getElementById('energyGauge');
+            const percentage = 85;
+            
+            const canvas = document.createElement('canvas');
+            canvas.width = 200;
+            canvas.height = 200;
+            gauge.appendChild(canvas);
+            
+            const ctx = canvas.getContext('2d');
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = 80;
+            
+            // Draw background circle
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.strokeStyle = '#e3e6f0';
+            ctx.lineWidth = 15;
+            ctx.stroke();
+            
+            // Draw progress arc
+            const startAngle = -Math.PI / 2;
+            const endAngle = startAngle + (2 * Math.PI * percentage / 100);
+            
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+            ctx.strokeStyle = percentage > 80 ? '#1cc88a' : percentage > 60 ? '#f6c23e' : '#e74a3b';
+            ctx.lineWidth = 15;
+            ctx.stroke();
+            
+            // Draw percentage text
+            ctx.fillStyle = '#5a5c69';
+            ctx.font = 'bold 24px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(percentage + '%', centerX, centerY + 8);
+        }
+        
+        // Initialize charts when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadFuelChartData();
+            createEnergyGauge();
+            
+            // Refresh data every 5 minutes
+            setInterval(loadFuelChartData, 300000);
+        });
+    </script>
+    
+    <style>
+        .progress-circle {
+            position: relative;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: conic-gradient(#1cc88a 0deg, #e3e6f0 0deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .progress-circle::before {
+            content: '';
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: white;
+        }
+        
+        .progress-circle i {
+            position: relative;
+            z-index: 1;
+        }
+    </style>
+} 

@@ -1,0 +1,110 @@
+@model IEnumerable<CargoRouteTracker.Models.Delivery>
+@{
+    ViewData["Title"] = "Delivery Management";
+}
+
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Delivery Management</h1>
+        <a href="@Url.Action("Create", "Deliveries")" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+            <i class="fas fa-plus fa-sm text-white-50"></i> New Delivery
+        </a>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">All Deliveries</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="deliveriesTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Tracking #</th>
+                            <th>Customer</th>
+                            <th>Vehicle</th>
+                            <th>Status</th>
+                            <th>Priority</th>
+                            <th>Scheduled</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var delivery in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <a href="@Url.Action("Details", "Deliveries", new { id = delivery.Id })" class="text-primary font-weight-bold">
+                                        @delivery.TrackingNumber
+                                    </a>
+                                </td>
+                                <td>@delivery.Customer?.Name</td>
+                                <td>
+                                    @if (delivery.Vehicle != null)
+                                    {
+                                        <span class="badge bg-info">@delivery.Vehicle.VehicleNumber</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Unassigned</span>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="badge bg-@(delivery.Status == DeliveryStatus.Delivered ? "success" : 
+                                                       delivery.Status == DeliveryStatus.InTransit ? "primary" : 
+                                                       delivery.Status == DeliveryStatus.OutForDelivery ? "warning" : 
+                                                       delivery.Status == DeliveryStatus.Failed ? "danger" : "secondary")">
+                                        @delivery.Status
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-@(delivery.Priority == 3 ? "danger" : delivery.Priority == 2 ? "warning" : "success")">
+                                        @(delivery.Priority == 3 ? "High" : delivery.Priority == 2 ? "Medium" : "Low")
+                                    </span>
+                                </td>
+                                <td>@delivery.ScheduledDeliveryTime.ToString("MM/dd HH:mm")</td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="@Url.Action("Details", "Deliveries", new { id = delivery.Id })" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="@Url.Action("Edit", "Deliveries", new { id = delivery.Id })" class="btn btn-sm btn-outline-secondary">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        @if (delivery.Status == DeliveryStatus.Scheduled && delivery.VehicleId == null)
+                                        {
+                                            <button type="button" class="btn btn-sm btn-outline-success" onclick="assignVehicle(@delivery.Id)">
+                                                <i class="fas fa-truck"></i>
+                                            </button>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5">
+            <i class="fas fa-route fa-3x text-gray-300 mb-3"></i>
+            <h4 class="text-gray-500">No deliveries found</h4>
+            <p class="text-gray-400">Create your first delivery to get started.</p>
+            <a href="@Url.Action("Create", "Deliveries")" class="btn btn-primary">
+                <i class="fas fa-plus"></i> New Delivery
+            </a>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        function assignVehicle(deliveryId) {
+            // This would typically open a modal to select a vehicle
+            alert('Vehicle assignment functionality would be implemented here for delivery ' + deliveryId);
+        }
+    </script>
+} 

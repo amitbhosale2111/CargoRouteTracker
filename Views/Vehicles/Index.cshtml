@@ -1,0 +1,71 @@
+@model IEnumerable<CargoRouteTracker.Models.Vehicle>
+@{
+    ViewData["Title"] = "Fleet Management";
+}
+
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Fleet Management</h1>
+        <a href="@Url.Action("Create", "Vehicles")" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+            <i class="fas fa-plus fa-sm text-white-50"></i> Add Vehicle
+        </a>
+    </div>
+
+    <div class="row">
+        @foreach (var vehicle in Model)
+        {
+            <div class="col-xl-4 col-md-6 mb-4">
+                <div class="card border-left-@(vehicle.Status == VehicleStatus.Available ? "success" : 
+                                               vehicle.Status == VehicleStatus.InTransit ? "primary" : 
+                                               vehicle.Status == VehicleStatus.Delivering ? "warning" : 
+                                               vehicle.Status == VehicleStatus.Maintenance ? "danger" : "secondary") shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-@(vehicle.Status == VehicleStatus.Available ? "success" : 
+                                                                         vehicle.Status == VehicleStatus.InTransit ? "primary" : 
+                                                                         vehicle.Status == VehicleStatus.Delivering ? "warning" : 
+                                                                         vehicle.Status == VehicleStatus.Maintenance ? "danger" : "secondary") text-uppercase mb-1">
+                                    @vehicle.VehicleNumber
+                                </div>
+                                <div class="h6 mb-0 font-weight-bold text-gray-800">@vehicle.DriverName</div>
+                                <div class="text-xs text-muted">@vehicle.VehicleType</div>
+                                <div class="text-xs text-muted">Status: @vehicle.Status</div>
+                                @if (vehicle.Alerts.Any(a => !a.IsResolved))
+                                {
+                                    <div class="text-xs text-danger">
+                                        <i class="fas fa-exclamation-triangle"></i> 
+                                        @vehicle.Alerts.Count(a => !a.IsResolved) active alert(s)
+                                    </div>
+                                }
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-@(vehicle.VehicleType == "Truck" ? "truck" : "shipping-fast") fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <a href="@Url.Action("Details", "Vehicles", new { id = vehicle.Id })" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-eye"></i> Details
+                            </a>
+                            <a href="@Url.Action("Edit", "Vehicles", new { id = vehicle.Id })" class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5">
+            <i class="fas fa-truck fa-3x text-gray-300 mb-3"></i>
+            <h4 class="text-gray-500">No vehicles found</h4>
+            <p class="text-gray-400">Add your first vehicle to get started with fleet management.</p>
+            <a href="@Url.Action("Create", "Vehicles")" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add Vehicle
+            </a>
+        </div>
+    }
+</div> 
